@@ -1,0 +1,106 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel", "build>=1.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lexkit"
+version = "2.0.0"
+description = "A CLI-first, offline-first research toolkit — deterministic NLP, citation graphs, and optional LLM enrichment"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+keywords = ["research", "academic", "pdf", "cli", "nlp", "bibliography", "offline", "citation-graph", "tfidf"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Text Processing",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "typer[all]>=0.12.0",
+    "rich>=13.7.0",
+    "pdfminer.six>=20221105",
+    "PyMuPDF>=1.24.0",
+    "whoosh>=2.7.4",
+    "python-slugify>=8.0.0",
+    "chardet>=5.2.0",
+    "bibtexparser>=1.4.0",
+    "Jinja2>=3.1.0",
+    "click>=8.1.0",
+]
+
+[project.optional-dependencies]
+# Optional AI enrichment — NOT required for any deterministic feature.
+# Activated at runtime only when LEXKIT_LLM_BASE_URL is set.
+ai = []
+# Optional desktop GUI (PySide6 dashboard). Install with: pip install "lexkit[gui]"
+gui = [
+    "PySide6>=6.6",
+    "pyqtgraph>=0.13",
+]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+    "pytest-qt>=4.4.0",
+    "black>=24.0.0",
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+    "build>=1.0.0",
+    "twine>=5.0.0",
+]
+
+[project.scripts]
+lexkit = "lexkit.cli.main:app"
+lexkit-gui = "lexkit.gui.app:main"
+
+# ── Plugin entry point group ─────────────────────────────────────────────────
+# Built-in tools ship as first-class plugins here.
+# Third-party plugins register under the same group, e.g.:
+#   [project.entry-points."lexkit.plugins"]
+#   ocr = "lexkit_plugin_ocr:plugin"
+[project.entry-points."lexkit.plugins"]
+fsm    = "lexkit.tools.fsm:app"
+clean  = "lexkit.tools.clean:app"
+batch  = "lexkit.tools.batch:app"
+search = "lexkit.tools.search:app"
+refs   = "lexkit.tools.refs:app"
+split  = "lexkit.tools.split:app"
+notes  = "lexkit.tools.notes:app"
+tpl    = "lexkit.tools.tpl:app"
+cite   = "lexkit.tools.cite:app"
+
+[project.urls]
+Homepage      = "https://lexable.studio/lexkit"
+Repository    = "https://github.com/lexable-studio/lexkit"
+Documentation = "https://lexable.studio/lexkit/docs"
+Changelog     = "https://github.com/lexable-studio/lexkit/blob/main/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/lexable-studio/lexkit/issues"
+
+[tool.setuptools.packages.find]
+where   = ["."]
+include = ["lexkit*"]
+
+[tool.black]
+line-length    = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+select      = ["E", "F", "W", "I", "N"]
+
+[tool.mypy]
+python_version         = "3.11"
+strict                 = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts   = "--tb=short -v --strict-markers"
