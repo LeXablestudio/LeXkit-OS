@@ -1,0 +1,274 @@
+Metadata-Version: 2.4
+Name: lexkit
+Version: 2.0.0
+Summary: A CLI-first, offline-first research toolkit — deterministic NLP, citation graphs, and optional LLM enrichment
+License: MIT
+Project-URL: Homepage, https://lexable.studio/lexkit
+Project-URL: Repository, https://github.com/lexable-studio/lexkit
+Project-URL: Documentation, https://lexable.studio/lexkit/docs
+Project-URL: Changelog, https://github.com/lexable-studio/lexkit/blob/main/CHANGELOG.md
+Project-URL: Bug Tracker, https://github.com/lexable-studio/lexkit/issues
+Keywords: research,academic,pdf,cli,nlp,bibliography,offline,citation-graph,tfidf
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Science/Research
+Classifier: Intended Audience :: Education
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Topic :: Text Processing
+Classifier: Topic :: Scientific/Engineering
+Classifier: Topic :: Utilities
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: typer[all]>=0.12.0
+Requires-Dist: rich>=13.7.0
+Requires-Dist: pdfminer.six>=20221105
+Requires-Dist: PyMuPDF>=1.24.0
+Requires-Dist: whoosh>=2.7.4
+Requires-Dist: python-slugify>=8.0.0
+Requires-Dist: chardet>=5.2.0
+Requires-Dist: bibtexparser>=1.4.0
+Requires-Dist: Jinja2>=3.1.0
+Requires-Dist: click>=8.1.0
+Provides-Extra: ai
+Provides-Extra: gui
+Requires-Dist: PySide6>=6.6; extra == "gui"
+Requires-Dist: pyqtgraph>=0.13; extra == "gui"
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0.0; extra == "dev"
+Requires-Dist: pytest-cov>=5.0.0; extra == "dev"
+Requires-Dist: pytest-qt>=4.4.0; extra == "dev"
+Requires-Dist: black>=24.0.0; extra == "dev"
+Requires-Dist: ruff>=0.4.0; extra == "dev"
+Requires-Dist: mypy>=1.10.0; extra == "dev"
+Requires-Dist: build>=1.0.0; extra == "dev"
+Requires-Dist: twine>=5.0.0; extra == "dev"
+Dynamic: license-file
+
+# LeXKit — Research OS for Your Files
+
+> CLI-first · Offline-first · Deterministic core · Optional AI · Full reproducibility
+
+[![Version](https://img.shields.io/badge/version-2.0.0-6D28D9)](#)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-6D28D9)](https://python.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-6D28D9.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-162%20passing-brightgreen)](#)
+
+LeXKit is a suite of **9 deterministic CLI tools** that manage, clean, search,
+analyze, and relate your entire academic file library — with a **deterministic
+NLP core** (TF-IDF, MinHash, citation parsing) and an **optional LLM layer**
+that enriches results when configured, but never breaks offline use.
+
+## What's new in 2.0.0 ("Relate")
+
+LeXKit 2.0 evolves from 8 isolated tools into a **relationally-aware research OS**:
+
+| New | Description |
+|-----|-------------|
+| 🔗 **Citation Graph** (`cite`) | Cross-match extracted references against your library to build a who-cites-whom network. Export to **GraphML** (Gephi/NetworkX), **JSON**, or **Graphviz DOT**. |
+| 📊 **Deterministic NLP core** | TF-IDF vectors, cosine similarity, keyterm extraction, MinHash + LSH near-duplicate clustering — zero ML, zero dependencies. |
+| 🔍 **Similarity search** | `lexkit search similar` finds documents related to an anchor via TF-IDF cosine ranking. |
+| 🧬 **Near-duplicate clustering** | `fsm` and `notes` now detect *near*-duplicates (not just exact SHA-256 matches) via MinHash. |
+| 📑 **Multi-format citation parsing** | `refs` now parses **APA, MLA, Chicago, Harvard, and numeric/bracket** styles (was APA-only). |
+| ⚡ **Incremental indexing** | `search` tracks file mtime + content hash — re-indexing skips unchanged files. |
+| 🤖 **Optional LLM enrichment** | Configure an OpenAI-compatible backend for higher-quality parsing. **Off by default** — LeXKit stays fully offline & reproducible. |
+
+Plus: fixed the v1 `refs.py` SyntaxError, the broken build backend, the plugin-loader mismatch, and the SQLite `references` reserved-word crash on Python 3.13.
+
+## Installation
+
+```bash
+pip install lexkit
+lexkit --version
+# LeXKit v2.0.0 — Research OS
+```
+
+From source (for development):
+
+```bash
+git clone <repo> && cd lexkit
+pip install -e ".[dev]"
+pytest -q          # 162 tests
+```
+
+## Quick Start
+
+```bash
+lexkit init ~/research
+
+# 1. Organize your library
+lexkit fsm --scan ~/Downloads --auto-sort --cluster    # sort + near-dup clustering
+
+# 2. Clean and extract text
+lexkit clean --input ~/research/papers --recursive
+lexkit batch extract --input ~/research/papers --output ~/research/text
+
+# 3. Search
+lexkit search index --index ~/research/papers
+lexkit search query --query "textual criticism methods"
+lexkit search similar --dir ~/research/papers --to ~/research/papers/smith2020.pdf
+
+# 4. Citations → Bibliography
+lexkit refs extract --input ~/research/papers
+lexkit refs export --export bibtex --out bibliography.bib
+
+# 5. Build a citation graph (the headline 2.0 feature)
+lexkit cite build --input ~/research/papers
+lexkit cite graph --export graphml --out citation.graphml   # open in Gephi
+lexkit cite stats
+
+# 6. Generate a paper template
+lexkit tpl generate --format mla --title "My Research Paper" --out paper.tex
+```
+
+## The 9 Tools
+
+| Command | Tool | What it does |
+|---------|------|--------------|
+| `lexkit fsm` | File System Manager | Scan, sort, dedup, **near-dup cluster** |
+| `lexkit clean` | Document Cleaner | Fix PDFs, normalize encoding |
+| `lexkit batch` | Batch Processor | Rename, convert, extract text |
+| `lexkit search` | Search Engine | Full-text, regex, fuzzy, **similarity** |
+| `lexkit refs` | Reference Manager | **Multi-format** extract & export |
+| `lexkit cite` | **Citation Graph** ⭐ | **Who-cites-whom network** + export |
+| `lexkit split` | Lecture Splitter | Split PDFs by table of contents |
+| `lexkit notes` | Notes Compiler | Merge & **near-dup** deduplicate |
+| `lexkit tpl` | Template Generator | APA/IEEE/ACM/**MLA/Markdown** stubs |
+
+## The Deterministic Analysis Core
+
+Every analysis feature runs on a pure-Python, dependency-free NLP engine
+(`lexkit/analysis/`) that guarantees reproducibility — the same input always
+produces the same output, on any machine, forever.
+
+```python
+from lexkit.analysis import TfidfModel, cosine_similarity, MinHasher, shingles, cluster_signatures
+
+# TF-IDF similarity
+model = TfidfModel(["neural networks", "graph theory", "medieval studies"])
+sim = cosine_similarity(model.transform("neural networks"), model.transform("graph neural"))
+
+# Near-duplicate clustering
+mh = MinHasher(num_perm=128)
+sigs = {"a": mh.signature(shingles(doc_a)), "b": mh.signature(shingles(doc_b))}
+result = cluster_signatures(sigs)  # near-dups grouped together
+```
+
+**No models to download. No network calls. No randomness.** Fully deterministic.
+
+## Optional AI Enrichment
+
+LeXKit is deterministic by default. To enable optional LLM enrichment for
+higher-quality citation parsing, set two environment variables:
+
+```bash
+export LEXKIT_LLM_BASE_URL="https://api.openai.com/v1"
+export LEXKIT_LLM_API_KEY="sk-..."
+export LEXKIT_LLM_MODEL="gpt-4o-mini"   # optional
+
+lexkit refs extract --input ~/research/papers --llm
+```
+
+When unconfigured, LeXKit uses `NullLLM` and every tool silently falls back to
+the deterministic engine. **No new dependencies are added** — the HTTP client
+uses Python's standard `urllib`.
+
+## Architecture
+
+```
+lexkit/
+├── analysis/          # ⭐ Deterministic NLP core (tokenizer, TF-IDF, MinHash)
+│   ├── tokenizer.py   #   Unicode tokenization, n-grams, stopwords
+│   ├── vectors.py     #   TF-IDF model, cosine similarity, keyterms
+│   └── minhash.py     #   MinHash signatures, LSH, clustering
+├── llm/               # ⭐ Optional LLM layer (off by default)
+│   ├── base.py        #   LLMBackend ABC, NullLLM, JSON parser
+│   ├── registry.py    #   get_llm() → NullLLM unless configured
+│   └── openai_compat.py # OpenAI-compatible client (stdlib urllib)
+├── tools/             # 9 CLI tools
+│   ├── cite.py        # ⭐ Citation graph (build, export, stats)
+│   ├── refs.py        # Multi-format citation parser
+│   ├── search.py      # Incremental index + similarity search
+│   ├── fsm.py         # Near-dup clustering
+│   └── ...
+├── db/store.py        # SQLite (migration-safe schema)
+├── plugins/           # Plugin system (TyperPlugin adapter)
+├── cli/main.py        # Root Typer app
+└── errors.py          # Error taxonomy
+```
+
+## Pipelines
+
+```bash
+lexkit pipeline --run intake --input ~/Downloads/papers
+lexkit pipeline --run export --input ~/research/papers
+lexkit pipeline --run full --input ~/Downloads/papers
+```
+
+## Database
+
+```bash
+lexkit db --stats         # files, refs, citation edges, near-dup clusters
+lexkit db --list-files    # indexed files
+lexkit db --clear         # wipe all records
+```
+
+Stored at `~/.lexkit/lexkit.db` (SQLite, WAL mode). The schema auto-migrates
+from v1 databases on first open.
+
+## Configuration
+
+Settings live at `~/.lexkit/config.json`:
+
+```json
+{
+  "workspace": "~/research",
+  "similarity_threshold": 0.25,
+  "near_duplicate_threshold": 0.5,
+  "minhash_permutations": 128,
+  "llm_backend": "",
+  "llm_model": ""
+}
+```
+
+## Plugin Development
+
+```python
+import typer
+from lexkit.plugins import PluginBase
+
+app = typer.Typer()
+
+class OcrPlugin(PluginBase):
+    name = "ocr"
+    version = "0.1.0"
+    description = "OCR for scanned PDFs"
+
+    @property
+    def typer_app(self):
+        return app
+
+plugin = OcrPlugin()
+```
+
+Register in `pyproject.toml`:
+
+```toml
+[project.entry-points."lexkit.plugins"]
+ocr = "lexkit_plugin_ocr:plugin"
+```
+
+## Philosophy
+
+- **Deterministic by default** — same input, same output, always.
+- **Offline-first** — no cloud, no models, no tracking.
+- **Optional AI** — enrichment available, never required.
+- **Full reproducibility** — sorted vocabularies, seeded hashes, UTC timestamps.
+
+## License
+
+MIT (c) 2026 LeXable Studio

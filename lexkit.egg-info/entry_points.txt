@@ -1,0 +1,14 @@
+[console_scripts]
+lexkit = lexkit.cli.main:app
+lexkit-gui = lexkit.gui.app:main
+
+[lexkit.plugins]
+batch = lexkit.tools.batch:app
+cite = lexkit.tools.cite:app
+clean = lexkit.tools.clean:app
+fsm = lexkit.tools.fsm:app
+notes = lexkit.tools.notes:app
+refs = lexkit.tools.refs:app
+search = lexkit.tools.search:app
+split = lexkit.tools.split:app
+tpl = lexkit.tools.tpl:app
